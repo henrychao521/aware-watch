@@ -80,45 +80,49 @@ function onHwWindow() {             // 每 2.5 秒
 }
 
 // ---------- 信標 ----------
-const ROLE = ['洗手台', '門口', '爐子'], RCOL = [C.blue, C.green, C.orange];
+const RCOL = [C.cyan, C.green, C.orange, C.blue, C.red, '#C800FF'];
+const PRESET = ['洗手台', '門口', '爐子', '書桌', '冰箱', '廁所', '窗戶', '其他地點'];
+const kindOf = n => n.includes('洗手') ? 0 : 1;                 // 0＝洗手台（洗手條件）1＝一般地點（只記錄）
 const HOUSE = { w: 13, h: 9 };                     // 公尺
-const BEACONS = [{ key: 'ib6E3B2A51-00010001', role: 0, x: 11.2, y: 0.9 }, { key: 'ib6E3B2A51-00010002', role: 1, x: 1.4, y: 7.6 },
-                 { key: 'ib6E3B2A51-00010003', role: 2, x: 3.6, y: 0.9 }];
+// 信標自己的名稱（使用者可在網站「裝置設定」頁改），手錶新增地點時會當預設名稱
+const BEACONS = [{ key: 'ib6E3B2A51-00010001', name: '浴室洗手台', x: 11.2, y: 0.9, col: C.blue }, { key: 'ib6E3B2A51-00010002', name: '大門', x: 1.4, y: 7.6, col: C.green },
+                 { key: 'ib6E3B2A51-00010003', name: '瓦斯爐', x: 3.6, y: 0.9, col: C.orange }];
 const PHONES = [{ key: 'm:5d:72:4b:95:03:3c', x: 6, y: 5 }, { key: 'm:78:ac:49:07:17:b5', x: 9, y: 7 }];
 let person = { x: 6.5, y: 5.5 };
-const reg = [];                                     // {key, role, ref, rssi, near, since}
+const reg = [];                                     // {key, name, kind, ref, rssi, near, since}
 function rssiAt(b) { const d = Math.max(0.15, Math.hypot(b.x - person.x, b.y - person.y)); return -59 - 20 * Math.log10(d) + (Math.random() - 0.5) * 4; }
 function bcnTick() {                                // 每秒：平滑訊號＋靠近判斷（靠近 ≥ 參考−8，離開要再弱 5 dB）
   for (const r of reg) {
     const b = BEACONS.find(x => x.key === r.key); const s = rssiAt(b);
     r.rssi = r.rssi === undefined ? s : 0.6 * r.rssi + 0.4 * s;
     const thr = r.ref - 8, nearNow = r.near ? r.rssi >= thr - 5 : r.rssi >= thr;
-    if (nearNow && !r.near) { r.near = true; r.since = now(); logEv('bcn_in', reg.indexOf(r), r.rssi, r.role); }
-    else if (!nearNow && r.near) { r.near = false; logEv('bcn_out', reg.indexOf(r), (now() - r.since) / 1000, r.role); }
+    if (nearNow && !r.near) { r.near = true; r.since = now(); logEv('bcn_in', reg.indexOf(r), r.rssi, r.kind); }
+    else if (!nearNow && r.near) { r.near = false; logEv('bcn_out', reg.indexOf(r), (now() - r.since) / 1000, r.kind); }
   }
-  $('rssi').textContent = BEACONS.map(b => `${ROLE[b.role]} ${Math.round(rssiAt(b))} dBm`).join('、');
+  $('rssi').textContent = BEACONS.map(b => `${b.name} ${Math.round(rssiAt(b))} dBm`).join('、');
 }
-const bcnCount = role => reg.filter(r => r.role === role).length;
-const bcnNear = role => reg.some(r => r.role === role && r.near);
+const bcnCount = kind => reg.filter(r => kind === undefined || r.kind === kind).length;
+const bcnNear = kind => reg.some(r => r.kind === kind && r.near);
 const bcnSinkOk = () => bcnCount(0) === 0 || bcnNear(0);
-const place = { step: 0, role: 0, t0: 0, cand: [], pick: 0, key: '', nearRssi: 0, sum: 0, n: 0, msg: '', msgUntil: 0 };
+const place = { step: 0, t0: 0, cand: [], pick: 0, key: '', own: '', nameIdx: 0, chosen: '', edit: -1, top: 0, nearRssi: 0, sum: 0, n: 0, msg: '', msgUntil: 0 };
+const nameList = () => (place.own ? [place.own] : []).concat(PRESET);
 function placeSay(m) { place.msg = m; place.msgUntil = now() + 2000; }
 function placeUpdate() {
   if (place.step === 1 && now() - place.t0 > 4000) {
-    place.cand = BEACONS.map(b => ({ key: b.key, rssi: Math.round(rssiAt(b)) })).concat(PHONES.map(b => ({ key: b.key, rssi: Math.round(rssiAt(b)) })))
+    place.cand = BEACONS.map(b => ({ key: b.key, name: b.name, rssi: Math.round(rssiAt(b)) })).concat(PHONES.map(b => ({ key: b.key, name: '', rssi: Math.round(rssiAt(b)) })))
       .sort((a, b) => (b.rssi - (b.key[0] === 'm' ? 200 : 0)) - (a.rssi - (a.key[0] === 'm' ? 200 : 0)));
     place.step = 2; place.pick = 0;
   }
   if (place.step === 4) {
     const b = BEACONS.find(x => x.key === place.key); if (b) { place.sum += rssiAt(b); place.n++; }
-    if (now() - place.t0 > 4000) { register(place.key, place.role, Math.round(place.sum / Math.max(1, place.n))); place.step = 0; placeSay('設定好了'); }
+    if (now() - place.t0 > 4000) { register(place.key, place.chosen, Math.round(place.sum / Math.max(1, place.n))); place.step = 0; place.edit = -1; placeSay('設定好了'); }
   }
 }
-function register(key, role, ref) {
+function register(key, name, ref) {
   let r = reg.find(x => x.key === key);
   if (!r) { if (reg.length >= 6) { placeSay('最多 6 顆'); return; } r = { key }; reg.push(r); }
-  Object.assign(r, { role, ref, rssi: undefined, near: false });
-  logEv('bcn_add', reg.indexOf(r), ref, role);
+  Object.assign(r, { name, kind: kindOf(name), ref, rssi: undefined, near: false });
+  logEv('bcn_add', reg.indexOf(r), ref, r.kind);
 }
 
 // ---------- 教學 ----------
@@ -313,31 +317,43 @@ function drawLive() {
   ring(120, 120, 104, 17, sim, C.red); ring(120, 120, 84, 17, hwProb, C.green); ring(120, 120, 64, 17, mot, C.cyan);
   txt(Math.round(sim * 100) + '%', 120, 96, 19, C.red); txt(Math.round(hwProb * 100) + '%', 120, 120, 19, C.green); txt(Math.round(gyrMean) + '°/s', 120, 144, 19, C.cyan);
 }
-const PL_Y = i => 78 + i * 44;
+const PL_Y = i => 70 + i * 38, PL_ROWS = 4;
+const plRows = () => reg.length + (reg.length < 6 ? 1 : 0);
 function drawPlace() {
   const t = now();
-  if (place.step === 1) { txt('把錶靠近信標', 120, 92, 19, C.fg); txt(ROLE[place.role], 120, 122, 15, RCOL[place.role]); ring(120, 120, 112, 6, (t - place.t0) / 4000, RCOL[place.role]); return; }
+  if (place.step === 1) { txt('把錶靠近信標', 120, 100, 19, C.fg); txt('掃描中…', 120, 130, 15, C.dim); ring(120, 120, 112, 6, (t - place.t0) / 4000, C.cyan); return; }
   if (place.step === 2) {
     const c = place.cand[place.pick % place.cand.length];
-    txt(ROLE[place.role], 120, 44, 15, RCOL[place.role]); pill(120, 96, 196, 52, C.cell);
-    txt(c.key[0] === 'i' ? 'iBeacon ' + c.key.slice(2) : 'MAC ' + c.key.slice(2), 120, 88, 13, C.fg, 500);
+    txt('選擇信標', 120, 44, 15, C.cyan); pill(120, 96, 196, 52, C.cell);
+    txt(c.name || ('MAC ' + c.key.slice(2)), 120, 88, c.name ? 15 : 13, C.fg, c.name ? 600 : 500);
     txt(`${c.rssi} dBm  ${place.pick % place.cand.length + 1}/${place.cand.length}`, 120, 108, 15, C.dim);
-    pill(76, 160, 84, 40, C.ok); txt('登錄', 76, 160, 19, '#000'); pill(164, 160, 84, 40, C.cell2); txt('下一個', 164, 160, 19, C.fg); return;
+    pill(76, 160, 84, 40, C.ok); txt('選這顆', 76, 160, 19, '#000'); pill(164, 160, 84, 40, C.cell2); txt('下一個', 164, 160, 19, C.fg); return;
   }
-  if (place.step >= 3) {
-    txt('站到平常', 120, 70, 19, C.fg); txt(`使用${ROLE[place.role]}的位置`, 120, 96, 19, C.fg);
-    if (place.step === 4) { ring(120, 120, 112, 6, (t - place.t0) / 4000, RCOL[place.role]); txt('量測中…', 120, 150, 15, C.dim); }
-    else { pill(76, 160, 84, 40, C.ok); txt('記錄', 76, 160, 19, '#000'); pill(164, 160, 84, 40, C.cell2); txt('略過', 164, 160, 19, C.fg); }
+  if (place.step === 5) {
+    const L = nameList(), n = L[place.nameIdx % L.length];
+    txt('這是哪裡？', 120, 44, 15, C.cyan); pill(120, 96, 196, 52, C.cell); txt(n, 120, 90, 19, C.fg);
+    txt(kindOf(n) === 0 ? '洗手要在這裡旁邊才算' : '只記錄進出，不提醒', 120, 112, 13, C.dim);
+    pill(76, 160, 84, 40, C.ok); txt('就是這', 76, 160, 19, '#000'); pill(164, 160, 84, 40, C.cell2); txt('下一個', 164, 160, 19, C.fg);
+    txt('名稱之後可在網站改', 120, 204, 13, '#6b6b6b'); return;
+  }
+  if (place.step === 3 || place.step === 4) {
+    txt('站到平常', 120, 66, 19, C.fg); txt(place.chosen, 120, 92, 19, C.cyan); txt('會在的位置', 120, 118, 19, C.fg);
+    if (place.step === 4) { ring(120, 120, 112, 6, (t - place.t0) / 4000, C.cyan); txt('量測中…', 120, 156, 15, C.dim); }
+    else { pill(76, 166, 84, 40, C.ok); txt('記錄', 76, 166, 19, '#000'); pill(164, 166, 84, 40, C.cell2); txt('略過', 164, 166, 19, C.fg); }
     return;
   }
+  const rows = plRows(); place.top = clamp(place.top, 0, Math.max(0, rows - PL_ROWS));
   txt('地點', 120, 34, 19, C.fg);
-  for (let r = 0; r < 3; r++) {
-    const y = PL_Y(r), n = bcnCount(r), nr = bcnNear(r);
-    pill(120, y, 184, 38, C.cell); g.fillStyle = !n ? '#424242' : nr ? RCOL[r] : dimc(RCOL[r]); g.beginPath(); g.arc(46, y, 6, 0, 7); g.fill();
-    txt(ROLE[r], 62, y, 19, C.fg, 600, 'left'); txt(!n ? '點一下設定' : nr ? '在旁邊' : '不在', 194, y, 15, n ? (nr ? RCOL[r] : C.dim) : '#6b6b6b', 600, 'right');
+  if (place.top > 0) { g.fillStyle = C.dim; g.beginPath(); g.moveTo(176, 38); g.lineTo(184, 38); g.lineTo(180, 31); g.fill(); }
+  for (let k = 0; k < PL_ROWS && place.top + k < rows; k++) {
+    const y = PL_Y(k), i = place.top + k;
+    if (i >= reg.length) { pill(120, y, 184, 32, C.cell2); txt('＋ 新增地點', 120, y, 19, C.cyan); continue; }
+    const r = reg[i]; pill(120, y, 184, 32, C.cell);
+    g.fillStyle = r.near ? RCOL[i] : dimc(RCOL[i]); g.beginPath(); g.arc(46, y, 6, 0, 7); g.fill();
+    txt(r.name, 60, y, 15, C.fg, 600, 'left'); txt(r.near ? '在旁邊' : '不在', 196, y, 15, r.near ? RCOL[i] : C.dim, 600, 'right');
   }
-  if (t < place.msgUntil) { g.font = F(15); const w = g.measureText(place.msg).width + 20; pill(120, 208, w, 24, C.cell2); txt(place.msg, 120, 208, 15, C.fg); }
-  else txt(bcnCount(0) ? '在洗手台旁才算洗手' : '長按一列＝刪除', 120, 208, 15, C.dim);
+  if (place.top + PL_ROWS < rows) { g.fillStyle = C.dim; g.beginPath(); g.moveTo(116, 216); g.lineTo(124, 216); g.lineTo(120, 223); g.fill(); }
+  if (t < place.msgUntil) { g.font = F(15); const w = g.measureText(place.msg).width + 20; pill(120, 214, w, 24, C.cell2); txt(place.msg, 120, 214, 15, C.fg); }
 }
 const TEACH_Y = i => 74 + i * 46;
 function drawTeach() {
@@ -393,9 +409,17 @@ function onTap(x, y) {
   if (page === 2 && y <= 200) { if (mz.st === 'ready') { mz.st = 'play'; mz.t0 = now(); } else if (mz.st === 'win') { mz.lv++; mz.st = 'ready'; mzGen(); } return; }
   if (page === 4) {
     if (place.step === 1 || place.step === 4) return;
-    if (place.step === 2) { if (Math.abs(y - 160) <= 22) { if (x < 120) { const c = place.cand[place.pick % place.cand.length]; place.key = c.key; place.nearRssi = c.rssi; place.step = 3; } else place.pick++; } return; }
-    if (place.step === 3) { if (Math.abs(y - 160) <= 22) { if (x < 120) { place.sum = 0; place.n = 0; place.t0 = now(); place.step = 4; } else { register(place.key, place.role, place.nearRssi - 20); place.step = 0; placeSay('先用預設距離'); } } return; }
-    for (let r = 0; r < 3; r++) if (Math.abs(y - PL_Y(r)) <= 19 && Math.abs(x - 120) <= 92) { place.role = r; place.step = 1; place.t0 = now(); return; }
+    if (place.step === 2) { if (Math.abs(y - 160) <= 22) { if (x < 120) { const c = place.cand[place.pick % place.cand.length]; place.key = c.key; place.own = c.name; place.nearRssi = c.rssi; place.nameIdx = 0; place.step = 5; } else place.pick++; } return; }
+    if (place.step === 5) { if (Math.abs(y - 160) <= 22) { if (x < 120) { const L = nameList(); place.chosen = L[place.nameIdx % L.length]; place.step = 3; } else place.nameIdx++; } return; }
+    if (place.step === 3) { if (Math.abs(y - 166) <= 22) { if (x < 120) { place.sum = 0; place.n = 0; place.t0 = now(); place.step = 4; } else { const isNew = place.edit < 0; if (isNew) register(place.key, place.chosen, place.nearRssi - 20); place.step = 0; place.edit = -1; placeSay(isNew ? '先用預設距離' : '沒有變更'); } } return; }
+    const rows = plRows();
+    if (y < 52 && place.top > 0) { place.top--; return; }
+    if (y > 204 && place.top + PL_ROWS < rows) { place.top++; return; }
+    for (let k = 0; k < PL_ROWS && place.top + k < rows; k++) if (Math.abs(y - PL_Y(k)) <= 17 && Math.abs(x - 120) <= 92) {
+      const i = place.top + k;
+      if (i >= reg.length) { place.step = 1; place.t0 = now(); place.edit = -1; return; }
+      place.edit = i; place.key = reg[i].key; place.chosen = reg[i].name; place.nearRssi = reg[i].ref + 20; place.step = 3; return;
+    }
   }
   if (page === 5 && !teach.phase) { for (let i = 0; i < 3; i++) if (Math.abs(y - TEACH_Y(i)) <= 21) { teach.slot = i; teach.phase = 1; teach.t0 = now(); return; } }
   if (y > 200 && !(page === 5 && teach.phase)) gotoPage((page + 1) % PAGES.length, 1);
@@ -404,7 +428,7 @@ function onLong(x, y) {
   if (alerting) return;
   if (page === 0) { logEv('missed', -1, lastAng, gyrMean); return; }
   if (page === 2) { mz.st = 'ready'; mzGen(); return; }
-  if (page === 4) { if (place.step) { place.step = 0; return; } for (let r = 0; r < 3; r++) if (Math.abs(y - PL_Y(r)) <= 19 && bcnCount(r)) { for (let i = reg.length - 1; i >= 0; i--) if (reg[i].role === r) reg.splice(i, 1); placeSay('已刪除'); } return; }
+  if (page === 4) { if (place.step) { place.step = 0; place.edit = -1; return; } for (let k = 0; k < PL_ROWS; k++) { const i = place.top + k; if (Math.abs(y - PL_Y(k)) <= 17 && i < reg.length) { reg.splice(i, 1); placeSay('已刪除'); } } return; }
   if (page === 5 && !teach.phase) for (let i = 0; i < 3; i++) if (Math.abs(y - TEACH_Y(i)) <= 21 && tpl[i]) tpl[i] = null;
 }
 function onSwipe(dy) { if (alerting || (page === 5 && teach.phase)) return; place.step = 0; if (dy < 0) gotoPage((page + 1) % PAGES.length, 1); else gotoPage((page + PAGES.length - 1) % PAGES.length, -1); }
@@ -443,11 +467,12 @@ function drawPlan() {
   pg.fillStyle = '#5f6a65'; pg.font = 'bold 26px "Noto Sans TC","PingFang TC",sans-serif';
   [['廚房', 0.4, 2.5], ['浴室', 9.3, 2.5], ['客廳', 5, 4.6], ['臥室', 9.2, 6.1], ['玄關', 0.4, 6.9]].forEach(([t, x, y]) => pg.fillText(t, x * PS, y * PS));
   for (const b of BEACONS) {
-    const near = reg.find(r => r.key === b.key)?.near, col = RCOL[b.role];
+    const near = reg.find(r => r.key === b.key)?.near, col = b.col;
     pg.fillStyle = col + '22'; pg.beginPath(); pg.arc(b.x * PS, b.y * PS, 1.5 * PS, 0, 7); pg.fill();
     pg.strokeStyle = col; pg.setLineDash([10, 8]); pg.lineWidth = 3; pg.stroke(); pg.setLineDash([]);
     pg.fillStyle = col; pg.fillRect(b.x * PS - 14, b.y * PS - 14, 28, 28); pg.fillStyle = '#fff'; pg.beginPath(); pg.arc(b.x * PS, b.y * PS, 5, 0, 7); pg.fill();
     if (near) { pg.strokeStyle = col; pg.lineWidth = 6; pg.beginPath(); pg.arc(b.x * PS, b.y * PS, 26, 0, 7); pg.stroke(); }
+    pg.fillStyle = col; pg.font = 'bold 22px "Noto Sans TC","PingFang TC",sans-serif'; pg.textAlign = 'center'; pg.fillText(b.name, b.x * PS, b.y * PS + (b.y < 2 ? 50 : -30)); pg.textAlign = 'left';
   }
   const px = person.x * PS, py = person.y * PS;
   pg.fillStyle = '#008A7C55'; pg.beginPath(); pg.arc(px, py + 8, 20, 0, 7); pg.fill(); pg.strokeStyle = '#008A7C'; pg.lineWidth = 3; pg.stroke();

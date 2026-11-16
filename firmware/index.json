@@ -3,49 +3,21 @@
   "id": "watch",
   "label": "手錶（Waveshare ESP32-S3-Touch-LCD-1.28）",
   "chip": "esp32s3",
-  "version": "0.7.0",
-  "built": "2026-11-16 21:13"
+  "version": "0.8.0",
+  "built": "2026-11-16 21:51"
  },
  {
-  "id": "beacon_tqt_1",
-  "label": "信標・洗手台（LILYGO T-QT Pro，有狀態螢幕）",
+  "id": "beacon_tqt",
+  "label": "信標（LILYGO T-QT Pro，有狀態螢幕）",
   "chip": "esp32s3",
-  "version": "1.1",
-  "built": "2026-11-16 21:23"
+  "version": "1.2",
+  "built": "2026-11-16 21:52"
  },
  {
-  "id": "beacon_c3_1",
-  "label": "信標・洗手台（ESP32-C3，無螢幕）",
+  "id": "beacon_c3",
+  "label": "信標（ESP32-C3，無螢幕）",
   "chip": "esp32c3",
-  "version": "1.1",
-  "built": "2026-11-16 21:24"
- },
- {
-  "id": "beacon_tqt_2",
-  "label": "信標・門口（LILYGO T-QT Pro，有狀態螢幕）",
-  "chip": "esp32s3",
-  "version": "1.1",
-  "built": "2026-11-16 21:25"
- },
- {
-  "id": "beacon_c3_2",
-  "label": "信標・門口（ESP32-C3，無螢幕）",
-  "chip": "esp32c3",
-  "version": "1.1",
-  "built": "2026-11-16 21:25"
- },
- {
-  "id": "beacon_tqt_3",
-  "label": "信標・爐子（LILYGO T-QT Pro，有狀態螢幕）",
-  "chip": "esp32s3",
-  "version": "1.1",
-  "built": "2026-11-16 21:26"
- },
- {
-  "id": "beacon_c3_3",
-  "label": "信標・爐子（ESP32-C3，無螢幕）",
-  "chip": "esp32c3",
-  "version": "1.1",
-  "built": "2026-11-16 21:27"
+  "version": "1.2",
+  "built": "2026-11-16 21:53"
  }
 ]

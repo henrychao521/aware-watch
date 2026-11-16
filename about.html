@@ -19,7 +19,7 @@ table{border-collapse:collapse;width:100%;font-size:.9rem;background:var(--card)
 a{color:var(--cyan)}small{color:var(--mute)}ul{padding-left:1.3em}
 .btn{display:inline-block;font-weight:700;padding:8px 16px;border:2px solid var(--ink);background:var(--cyan);color:#fff;text-decoration:none;margin-right:8px}
 </style></head><body><main>
-<header><h1>察覺錶系統簡介</h1><nav><a href="index.html">模擬器</a><a href="flash.html">韌體燒錄</a><a href="code.html">信標程式碼</a></nav></header>
+<header><h1>察覺錶系統簡介</h1><nav><a href="index.html">模擬器</a><a href="flash.html">韌體燒錄</a><a href="settings.html">裝置設定</a><a href="code.html">信標程式碼</a></nav></header>
 <p>一支自製智慧手錶，用手腕動作感測與錶上人工智慧，在重複行為（例如反覆洗手、手伸向頭髮）發生時溫和提示「察覺一下」，並讓使用者回饋是否正確，累積成可與治療師一起回顧的紀錄。<b>研究原型，行為察覺的輔助工具；不是醫療器材，不做診斷。</b></p>
 <p><a class="btn" href="系統簡介.pdf">下載系統簡介 PDF</a><a class="btn" href="index.html">開啟模擬器</a></p>
 
@@ -33,7 +33,7 @@ a{color:var(--cyan)}small{color:var(--mute)}ul{padding-left:1.3em}
 <table>
 <tr><th>功能</th><th>做什麼</th></tr>
 <tr><td>洗手偵測</td><td>錶上輕量神經網路判斷正在洗手並記錄時長；登錄洗手台信標後須在洗手台旁才計入；持續超過設定時間才提醒。</td></tr>
-<tr><td>地點紀錄</td><td>記錄靠近洗手台、門口、爐子的次數與停留；門口與爐子只記錄、不提醒。</td></tr>
+<tr><td>地點紀錄</td><td>地點由使用者自己新增與命名（最多 6 個，例如廚房洗手台、大門、書桌），名稱可在 <a href="settings.html">裝置設定</a> 修改。「洗手台」種類的地點是洗手的必要條件，其他地點只記錄進出、不提醒。</td></tr>
 <tr><td>個人化動作提醒</td><td>使用者示範想被提醒的動作，之後做出相似動作持續數秒才提醒。</td></tr>
 <tr><td>回饋紀錄</td><td>提醒後按「是／不是」，也能補記「我剛剛有做」。</td></tr>
 <tr><td>陪伴與放鬆</td><td>機器人助理小圓、傾斜手腕的滾球迷宮；不懲罰、不推播。</td></tr>

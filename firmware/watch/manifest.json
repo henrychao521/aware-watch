@@ -2,8 +2,8 @@
  "id": "watch",
  "label": "手錶（Waveshare ESP32-S3-Touch-LCD-1.28）",
  "chip": "esp32s3",
- "version": "0.7.0",
- "built": "2026-11-16 21:13",
+ "version": "0.8.0",
+ "built": "2026-11-16 21:51",
  "images": [
   {
    "offset": 0,
@@ -23,7 +23,7 @@
   {
    "offset": 65536,
    "name": "app.bin",
-   "size": 1832352
+   "size": 1875312
   }
  ]
 }

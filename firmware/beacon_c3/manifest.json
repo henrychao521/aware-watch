@@ -1,9 +1,9 @@
 {
- "id": "beacon_c3_2",
- "label": "信標・門口（ESP32-C3，無螢幕）",
+ "id": "beacon_c3",
+ "label": "信標（ESP32-C3，無螢幕）",
  "chip": "esp32c3",
- "version": "1.1",
- "built": "2026-11-16 21:25",
+ "version": "1.2",
+ "built": "2026-11-16 21:53",
  "images": [
   {
    "offset": 0,
@@ -23,7 +23,7 @@
   {
    "offset": 65536,
    "name": "app.bin",
-   "size": 572960
+   "size": 577712
   }
  ]
 }

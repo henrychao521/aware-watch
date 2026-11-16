@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>察覺錶裝置設定</title>
+<style>
+:root{--ink:#1a1a18;--card:#fbfaf6;--bg:#ecebe4;--cyan:#0a7f8c;--mute:#6a665c;--ok:#1f7a3a;--bad:#b3261e;--warn:#9a5b00;--line:#cfcabd}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#ece9e1;--card:#202124;--bg:#17181a;--cyan:#4fc3cf;--mute:#a19c90;--ok:#6fd38f;--bad:#ff8a80;--warn:#ffc266;--line:#3a3b3e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+main{max-width:820px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;border-bottom:3px solid var(--ink);padding-bottom:6px;margin-bottom:10px}
+h1{font-size:1.4rem;margin:0}nav a{color:var(--cyan);margin-left:14px;font-size:.9rem}
+.card{background:var(--card);border:2px solid var(--ink);padding:14px 16px;margin:14px 0}.card h2{font-size:1.08rem;margin:0 0 8px}
+button{font:inherit;font-weight:700;padding:8px 14px;border:2px solid var(--ink);background:var(--cyan);color:#fff;cursor:pointer}
+button.sec{background:var(--card);color:var(--ink)}button:disabled{opacity:.45;cursor:not-allowed}
+input,select{font:inherit;padding:5px 8px;border:1px solid var(--mute);background:var(--bg);color:var(--ink)}
+input[type=text]{width:100%}
+table{border-collapse:collapse;width:100%;font-size:.92rem}td,th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:middle}
+.msg{font-weight:700;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+small{color:var(--mute)}a{color:var(--cyan)}
+.grid{display:grid;grid-template-columns:7em 1fr;gap:8px 12px;align-items:center;max-width:480px}
+</style></head><body><main>
+<header><h1>裝置設定</h1><nav><a href="index.html">模擬器</a><a href="flash.html">韌體燒錄</a><a href="code.html">信標程式碼</a></nav></header>
+<p>用電腦版 <b>Chrome 或 Edge</b> 透過 USB 修改設定，不用重新燒錄。一次只接一台最不會選錯。</p>
+
+<div class="card"><h2>信標：名稱與編號</h2>
+<p><small>名稱會顯示在信標螢幕上，也會廣播出去；手錶新增地點時會把它當成預設名稱。<b>同一個地方的每顆信標編號要不同</b>（1～65535）。存檔後信標會自動重開機。需要信標韌體 1.2 以上。</small></p>
+<p><button id="bConn">連接信標</button></p>
+<div class="grid" id="bForm" hidden>
+  <span>目前</span><span id="bNow"></span>
+  <label for="bName">名稱</label><input type="text" id="bName" maxlength="24" placeholder="例如：廚房洗手台">
+  <label for="bMinor">編號</label><input type="number" id="bMinor" min="1" max="65535">
+  <span></span><span><button id="bSave">存檔並重開機</button></span>
+</div>
+<div class="msg" id="bMsg"></div>
+</div>
+
+<div class="card"><h2>手錶：地點清單</h2>
+<p><small>在手錶「地點」頁新增的地點會列在這裡，可以改名稱、改種類或刪除。連接時也會順便把手錶的時間對準電腦。需要手錶韌體 0.8 以上。</small></p>
+<p><button id="wConn">連接手錶</button></p>
+<div id="wList"></div>
+<div class="msg" id="wMsg"></div>
+<p><small>種類說明：<b>洗手台</b>＝洗手要在它旁邊才算；<b>一般地點</b>＝只記錄進出，不提醒。</small></p>
+</div>
+<p><small>研究原型，非醫療器材。</small></p>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder(), dec = new TextDecoder();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const say = (el, t, c = '') => { $(el).textContent = t; $(el).className = 'msg ' + c; };
+// 開一個序列埠，提供「送一行、等某個開頭的回覆」
+async function openPort(filters) {
+  if (!('serial' in navigator)) throw new Error('這個瀏覽器不支援 Web Serial，請改用電腦版 Chrome 或 Edge');
+  const port = await navigator.serial.requestPort({ filters });
+  await port.open({ baudRate: 115200 });
+  const reader = port.readable.getReader(); let buf = '', waiters = [];
+  (async () => { try { for (;;) { const { value, done } = await reader.read(); if (done) break; buf += dec.decode(value, { stream: true });
+      let i; while ((i = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, i).replace(/\r$/, ''); buf = buf.slice(i + 1); waiters = waiters.filter(w => !(line.startsWith(w.p) && (w.r(line), true))); } } } catch {} })();
+  const send = async s => { const w = port.writable.getWriter(); await w.write(enc.encode(s + '\n')); w.releaseLock(); };
+  const ask = (s, prefix, ms = 3000) => new Promise((res, rej) => { const t = setTimeout(() => rej(new Error('沒有回應：' + s)), ms); waiters.push({ p: prefix, r: l => { clearTimeout(t); res(l); } }); send(s); });
+  const close = async () => { try { await reader.cancel(); } catch {} try { await port.close(); } catch {} };
+  return { send, ask, close };
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ---------- 信標 ----------
+let bp = null;
+$('bConn').onclick = async () => {
+  try {
+    if (bp) await bp.close();
+    bp = await openPort([{ usbVendorId: 0x303a }]);
+    say('bMsg', '讀取中…');
+    let line = null;
+    for (let t = 0; t < 3 && !line; t++) { try { line = await bp.ask('info', 'INFO ', 1500); } catch { await sleep(500); } }
+    if (!line) throw new Error('信標沒有回應：可能是舊版韌體（1.1 以前），請先到「韌體燒錄」更新');
+    const info = JSON.parse(line.slice(5));
+    $('bNow').textContent = `${info.name}（編號 ${info.minor}，韌體 ${info.fw}）`; $('bName').value = info.name; $('bMinor').value = info.minor;
+    $('bForm').hidden = false; say('bMsg', '已連接', 'ok');
+  } catch (e) { say('bMsg', e.message, 'bad'); }
+};
+$('bSave').onclick = async () => {
+  const name = $('bName').value.trim(), minor = +$('bMinor').value;
+  if (!name || enc.encode(name).length > 24) return say('bMsg', '名稱要 1～24 位元組（約 8 個中文字以內）', 'bad');
+  if (!(minor >= 1 && minor <= 65535)) return say('bMsg', '編號要在 1～65535', 'bad');
+  try { const r = await bp.ask(`set ${minor} ${name}`, 'OK set', 3000); await bp.close(); bp = null; $('bForm').hidden = true;
+    say('bMsg', `已存檔：${name}（編號 ${minor}），信標重開機中。要確認的話等 3 秒再按一次「連接信標」。`, 'ok');
+  } catch (e) { say('bMsg', '存檔失敗：' + e.message, 'bad'); }
+};
+
+// ---------- 手錶 ----------
+let wp = null, places = [];
+async function loadPlaces() {
+  const line = await wp.ask('bcn json', 'BCNJSON ', 3000); places = JSON.parse(line.slice(8)); render();
+}
+function render() {
+  if (!places.length) { $('wList').innerHTML = '<p>手錶上還沒有地點。請在手錶「地點」頁點「＋ 新增地點」。</p>'; return; }
+  $('wList').innerHTML = '<table><tr><th>名稱</th><th style="width:9em">種類</th><th style="width:6em">狀態</th><th style="width:11em"></th></tr>' + places.map(p => `
+    <tr><td><input type="text" id="n${p.i}" maxlength="24" value="${esc(p.name)}"></td>
+    <td><select id="k${p.i}"><option value="0"${p.kind == 0 ? ' selected' : ''}>洗手台</option><option value="1"${p.kind == 1 ? ' selected' : ''}>一般地點</option></select></td>
+    <td>${p.near ? '在旁邊' : '不在'}</td>
+    <td><button onclick="savePlace(${p.i})">存檔</button> <button class="sec" onclick="delPlace(${p.i})">刪除</button></td></tr>`).join('') + '</table>';
+}
+async function savePlace(i) {
+  const name = $('n' + i).value.trim(), kind = +$('k' + i).value;
+  if (!name || enc.encode(name).length > 24) return say('wMsg', '名稱要 1～24 位元組（約 8 個中文字以內）', 'bad');
+  try { await wp.ask(`bcn name ${i} ${name}`, 'OK bcn'); await wp.ask(`bcn kind ${i} ${kind}`, 'OK bcn'); await loadPlaces(); say('wMsg', `已存檔：${name}`, 'ok'); }
+  catch (e) { say('wMsg', '存檔失敗：' + e.message, 'bad'); }
+}
+async function delPlace(i) {
+  const p = places.find(x => x.i === i); if (!confirm(`刪除「${p ? p.name : ''}」？手錶之後就不再判斷這個地點。`)) return;
+  try { await wp.ask(`bcn rm ${i}`, 'OK bcn'); await loadPlaces(); say('wMsg', '已刪除', 'ok'); } catch (e) { say('wMsg', '刪除失敗：' + e.message, 'bad'); }
+}
+$('wConn').onclick = async () => {
+  try {
+    if (wp) await wp.close();
+    wp = await openPort([{ usbVendorId: 0x1a86 }, { usbVendorId: 0x303a }]);
+    say('wMsg', '連接中（手錶會重開機，約 3 秒）…'); await sleep(2500);
+    let ok = false;
+    for (let t = 0; t < 4 && !ok; t++) { try { await wp.ask(`time ${Math.floor(Date.now() / 1000)}`, 'OK time', 1500); ok = true; } catch { await sleep(800); } }
+    if (!ok) throw new Error('手錶沒有回應：確認選的是手錶（USB Single Serial），且韌體為 0.8 以上');
+    await loadPlaces(); say('wMsg', '已連接，時間已對準', 'ok');
+  } catch (e) { say('wMsg', e.message, 'bad'); }
+};
+</script>
+</body></html>

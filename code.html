@@ -15,7 +15,7 @@ pre{background:#0d1117;color:#c9d1d9;padding:12px;overflow:auto;font-size:.78rem
 a{color:var(--cyan)}.btn{display:inline-block;font-weight:700;padding:8px 16px;border:2px solid var(--ink);background:var(--cyan);color:#fff;text-decoration:none}
 small{color:var(--mute)}
 </style></head><body><main>
-<header><h1>信標程式碼</h1><nav><a href="index.html">模擬器</a><a href="flash.html">韌體燒錄</a><a href="about.html">系統簡介</a></nav></header>
+<header><h1>信標程式碼</h1><nav><a href="index.html">模擬器</a><a href="flash.html">韌體燒錄</a><a href="settings.html">裝置設定</a><a href="about.html">系統簡介</a></nav></header>
 <p>地點信標只做一件事：用藍牙低功耗固定廣播一個 iBeacon（或固定名稱），讓手錶判斷「在不在附近」。不收資料、不連線。不想自己編譯的話，直接到 <a href="flash.html">韌體燒錄</a> 選角色燒錄即可。</p>
 <p><a class="btn" href="code/beacon_tx.ino" download>下載 beacon_tx.ino</a></p>
 
@@ -26,7 +26,7 @@ small{color:var(--mute)}
 <tr><td>需要的函式庫</td><td>NimBLE-Arduino（2.x）、LovyanGFX</td><td>NimBLE-Arduino（2.x）</td></tr>
 <tr><td>板子選擇</td><td>ESP32S3 Dev Module</td><td>ESP32C3 Dev Module</td></tr>
 <tr><td>重要設定</td><td>Flash Size 4MB；Partition Scheme「Huge APP」（中文字型較大）；USB CDC On Boot「Enabled」</td><td>USB CDC On Boot「Enabled」；程式開頭把 <code>HAS_TQT_SCREEN</code> 改成 0</td></tr>
-<tr><td>角色</td><td colspan="2">改 <code>MINOR</code>：1＝洗手台、2＝門口、3＝爐子（名稱會跟著變成 SINK-1／DOOR-1／STOVE-1）。同一個家裡每顆信標的 MINOR 要不同。</td></tr>
+<tr><td>名稱與編號</td><td colspan="2">燒完後到 <a href="settings.html">裝置設定</a> 頁用 USB 修改，不必改程式；也可以在序列埠監看視窗輸入 <code>set 2 廚房洗手台</code>（編號 名稱）、<code>info</code>。同一個家裡每顆信標的編號要不同。</td></tr>
 </table>
 <p><small>UUID 用這個專案自己的固定值；要和別的專案區分，可自行換一組隨機 UUID（手錶登錄時會一併記下）。螢幕腳位與初始化序列適用 T-QT Pro（GC9107，0.85 吋）。</small></p>
 </div>

@@ -25,7 +25,7 @@ pre{background:#0d1117;color:#c9d1d9;padding:10px;max-height:220px;overflow:auto
 table{border-collapse:collapse;width:100%;font-size:.92rem}td,th{border:1px solid var(--mute);padding:6px 8px;text-align:left;vertical-align:top}
 small{color:var(--mute)}a{color:var(--cyan)}code{font-size:.9em}
 </style></head><body><main>
-<header><h1>察覺錶韌體燒錄</h1><nav><a href="index.html">模擬器</a><a href="code.html">信標程式碼</a><a href="about.html">系統簡介</a></nav></header>
+<header><h1>察覺錶韌體燒錄</h1><nav><a href="index.html">模擬器</a><a href="settings.html">裝置設定</a><a href="code.html">信標程式碼</a><a href="about.html">系統簡介</a></nav></header>
 <p class="sub">不用安裝任何軟體：用電腦版 <b>Chrome 或 Edge</b> 開這一頁，選好要燒的裝置，接上 USB 就能燒錄。</p>
 
 <div class="card"><h2>1. 選擇要燒的裝置</h2>
@@ -54,7 +54,7 @@ small{color:var(--mute)}a{color:var(--cyan)}code{font-size:.9em}
 
 <div class="card"><h2>燒錄後</h2>
 <p><b>手錶</b>：接上電腦時可用序列埠對時；操作方式可先在 <a href="index.html">模擬器</a> 熟悉。<br>
-<b>信標</b>：T-QT Pro 版開機會顯示角色與綠燈「廣播中」，30 秒後自動關背光，按任一鍵再亮；無螢幕的 C3 版只能用手錶「地點」頁掃描確認。放好後到手錶「地點」頁登錄。</p>
+<b>信標</b>：燒完先到 <a href="settings.html">裝置設定</a> 幫它取名字（例如「廚房洗手台」）並設定編號（<b>同一個地方每顆要不同</b>）。T-QT Pro 版會在螢幕顯示名稱與綠燈「廣播中」，30 秒後自動關背光，按任一鍵再亮；無螢幕的 C3 版只能用手錶「地點」頁掃描確認。放好後到手錶「地點」頁點「＋ 新增地點」。</p>
 <p id="ver"><small></small></p></div>
 <p><small>燒錄工具使用 <a href="https://github.com/espressif/esptool-js" target="_blank" rel="noopener">esptool-js</a>（Espressif，Apache-2.0）。研究原型，非醫療器材。</small></p>
 </main>

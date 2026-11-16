@@ -36,7 +36,7 @@ footer{margin-top:18px;font-size:.8rem;color:var(--mute);border-top:1px solid va
 <body>
 <header>
   <h1>察覺錶模擬器</h1>
-  <nav><a href="flash.html">韌體燒錄</a><a href="code.html">信標程式碼</a><a href="about.html">系統簡介與材料</a></nav>
+  <nav><a href="flash.html">韌體燒錄</a><a href="settings.html">裝置設定</a><a href="code.html">信標程式碼</a><a href="about.html">系統簡介與材料</a></nav>
 </header>
 <div class="note">這是手錶介面與判斷規則的模擬。<b>洗手機率由下方「手腕動作」情境產生，不是錶上真實的偵測模型</b>；信標距離用常見的訊號衰減公式估算。研究原型，非醫療器材。</div>
 <main>
@@ -57,7 +57,7 @@ footer{margin-top:18px;font-size:.8rem;color:var(--mute);border-top:1px solid va
     </section>
     <section class="panel"><h2>家中平面圖：拖曳人物移動</h2>
       <canvas id="plan" width="1040" height="720"></canvas>
-      <div class="hint">三顆信標（藍＝洗手台、綠＝門口、橘＝爐子）先在錶的「地點」頁登錄才會被使用；未登錄時洗手偵測不受地點限制。目前訊號：<span id="rssi"></span></div>
+      <div class="hint">三顆信標已在「裝置設定」命名（浴室洗手台、大門、瓦斯爐）；要先在錶的「地點」頁點「＋ 新增地點」登錄才會被使用。名稱含「洗手」的地點會當作洗手條件；沒有這種地點時洗手偵測不受地點限制。目前訊號：<span id="rssi"></span></div>
     </section>
     <section class="panel"><h2>設定</h2>
       <div class="grid2">
