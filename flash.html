@@ -35,7 +35,7 @@ small{color:var(--mute)}a{color:var(--cyan)}code{font-size:.9em}
 <div class="card"><h2>2. 連接並燒錄</h2>
 <ol>
 <li>用 <b>USB 資料線</b>（不是純充電線）接上板子。</li>
-<li>按「連接並燒錄」，在清單選 <code>USB JTAG/serial debug unit</code> 或板子對應的連接埠，按「連線」。</li>
+<li>按「連接並燒錄」，在清單選要燒的那塊板子，按「連線」。<b>同時接著手錶和信標時特別注意</b>：信標（T-QT Pro）通常顯示 <code>USB JTAG/serial debug unit</code>，手錶顯示 <code>USB Single Serial</code>；選錯時頁面會依記憶體容量擋下，不會燒進去。</li>
 <li>等進度條跑完，看到「燒錄完成」板子會自動重開機。</li>
 </ol>
 <p style="margin:12px 0 0"><button id="go">連接並燒錄</button><label class="opt"><input type="checkbox" id="erase"> 先清除全部資料</label></p>
@@ -84,7 +84,11 @@ $('go').onclick = async () => {
     await loader.main();
     const chip = (loader.chip.CHIP_NAME || '').replace(/\s/g, '');
     if (chip.toUpperCase() !== (CHIPNAME[m.chip] || '').replace(/\s/g, '').toUpperCase()) throw new Error(`偵測到 ${chip}，但「${m.label}」需要 ${CHIPNAME[m.chip]}，請回第 1 步選對裝置`);
-    setMsg(`偵測到 ${chip}，下載韌體…`);
+    // 手錶與 T-QT Pro 信標都是 ESP32-S3，只看晶片分不出來；用快閃記憶體容量再擋一次（手錶 16 MB、信標 4 MB）
+    const kb = await loader.getFlashSize(); L(`快閃記憶體：${kb ? kb / 1024 + ' MB' : '未知'}`);
+    if (m.id === 'watch' && kb && kb !== 16384) throw new Error(`這片板子的快閃記憶體是 ${kb / 1024} MB，手錶應該是 16 MB；可能選到信標了，請重選連接埠`);
+    if (m.id !== 'watch' && kb >= 16384) throw new Error(`這片板子的快閃記憶體是 16 MB，看起來是手錶，不是信標；為了不蓋掉手錶，已停止。請重選連接埠`);
+    setMsg(`偵測到 ${chip}（${kb / 1024} MB），下載韌體…`);
     const files = [];
     for (const im of m.images) { const b = new Uint8Array(await (await fetch(`firmware/${id}/${im.name}`, { cache: 'no-store' })).arrayBuffer()); files.push({ data: toBinStr(b), address: im.offset }); L(`${im.name}：${b.length} bytes → 0x${im.offset.toString(16)}`); }
     setMsg($('erase').checked ? '清除全部資料並燒錄中…' : '燒錄中…');
