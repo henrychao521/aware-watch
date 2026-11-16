@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>察覺錶系統簡介</title>
+<style>
+:root{--ink:#1a1a18;--card:#fbfaf6;--bg:#ecebe4;--cyan:#0a7f8c;--mute:#6a665c;--line:#cfcabd}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#ece9e1;--card:#202124;--bg:#17181a;--cyan:#4fc3cf;--mute:#a19c90;--line:#3a3b3e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+main{max-width:900px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;border-bottom:3px solid var(--ink);padding-bottom:6px;margin-bottom:10px}
+h1{font-size:1.4rem;margin:0}nav a{color:var(--cyan);margin-left:14px;font-size:.9rem}
+h2{font-size:1.15rem;margin:28px 0 8px;border-left:5px solid var(--cyan);padding-left:8px}
+figure{margin:12px 0;background:#fff;border:1px solid var(--line);padding:8px}
+figure img{width:100%;height:auto;display:block}
+figcaption{font-size:.85rem;color:var(--mute);margin-top:6px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px;align-items:start}
+@media (max-width:700px){.two{grid-template-columns:minmax(0,1fr)}}
+table{border-collapse:collapse;width:100%;font-size:.9rem;background:var(--card)}td,th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}th{background:rgba(0,0,0,.04)}
+a{color:var(--cyan)}small{color:var(--mute)}ul{padding-left:1.3em}
+.btn{display:inline-block;font-weight:700;padding:8px 16px;border:2px solid var(--ink);background:var(--cyan);color:#fff;text-decoration:none;margin-right:8px}
+</style></head><body><main>
+<header><h1>察覺錶系統簡介</h1><nav><a href="index.html">模擬器</a><a href="flash.html">韌體燒錄</a><a href="code.html">信標程式碼</a></nav></header>
+<p>一支自製智慧手錶，用手腕動作感測與錶上人工智慧，在重複行為（例如反覆洗手、手伸向頭髮）發生時溫和提示「察覺一下」，並讓使用者回饋是否正確，累積成可與治療師一起回顧的紀錄。<b>研究原型，行為察覺的輔助工具；不是醫療器材，不做診斷。</b></p>
+<p><a class="btn" href="系統簡介.pdf">下載系統簡介 PDF</a><a class="btn" href="index.html">開啟模擬器</a></p>
+
+<h2>系統架構</h2>
+<figure><img src="img/fig_arch.webp" width="1400" height="560" alt="系統架構：手錶為主機，信標提供地點，電腦與雲端只用於開發"><figcaption>手錶是唯一必要的裝置；信標提供地點資訊；電腦與雲端只用於開發與匯出紀錄，日常使用不需要連網。</figcaption></figure>
+
+<div class="two">
+<figure><img src="img/photo_devices_redacted.webp" width="720" height="1110" alt="實機照片：上方為手錶原型，下方為有狀態螢幕的地點信標"><figcaption>實機：上方手錶顯示姿勢範本觸發的「察覺一下」，下方信標顯示「洗手台・廣播中」（識別碼已遮蔽）。</figcaption></figure>
+<div>
+<h2 style="margin-top:12px">主要功能</h2>
+<table>
+<tr><th>功能</th><th>做什麼</th></tr>
+<tr><td>洗手偵測</td><td>錶上輕量神經網路判斷正在洗手並記錄時長；登錄洗手台信標後須在洗手台旁才計入；持續超過設定時間才提醒。</td></tr>
+<tr><td>地點紀錄</td><td>記錄靠近洗手台、門口、爐子的次數與停留；門口與爐子只記錄、不提醒。</td></tr>
+<tr><td>個人化動作提醒</td><td>使用者示範想被提醒的動作，之後做出相似動作持續數秒才提醒。</td></tr>
+<tr><td>回饋紀錄</td><td>提醒後按「是／不是」，也能補記「我剛剛有做」。</td></tr>
+<tr><td>陪伴與放鬆</td><td>機器人助理小圓、傾斜手腕的滾球迷宮；不懲罰、不推播。</td></tr>
+</table>
+</div></div>
+
+<h2>使用情境（示意）</h2>
+<figure><img src="img/scene_home.webp" width="1520" height="994" alt="家中平面圖：洗手台、大門、瓦斯爐各一顆信標"><figcaption>家中：三顆固定信標。只有「在洗手台旁且動作判斷為洗手」才計入洗手。平面圖為模擬。</figcaption></figure>
+<figure><img src="img/scene_school.webp" width="1520" height="994" alt="學校平面圖：廁所洗手台信標與鉛筆盒隨身信標"><figcaption>學校：廁所洗手台放固定信標；鉛筆盒或書包放隨身信標，只能代表「書包在旁邊」。在校使用須先取得學校與家長同意。</figcaption></figure>
+<figure><img src="img/timeline_day.webp" width="1520" height="564" alt="一天的模擬紀錄時間軸"><figcaption>一天的模擬紀錄（非實測資料）：色條是在各信標旁的時段，三角形是偵測到的洗手，紅色為超過設定時間的提醒。</figcaption></figure>
+
+<h2>目前驗證成果與限制</h2>
+<ul>
+<li>洗手偵測以國際公開的強迫洗手研究資料（22 位受試者、約 2,600 小時）在「模型沒看過的人」身上驗證：預設設定約 6 成的洗手能被偵測到，平均每小時誤報約 2.6 次；個人差異大。</li>
+<li>錶上計算與電腦端一致，每次判斷約 0.03 秒，不需網路。</li>
+<li>地點信標實機測試：在旁時判定穩定；關掉信標約 26 秒判定離開，重新開啟約 5 秒判定回來。</li>
+<li><b>尚未進行實地配戴測試</b>；無法分辨某次洗手是否屬於強迫性；「洗多久算太久」需由使用者與治療師共同設定；電池續航尚未量測。</li>
+</ul>
+
+<h2>材料</h2>
+<table>
+<tr><th>品項</th><th>規格</th><th>用途</th></tr>
+<tr><td>手錶主機板</td><td>Waveshare ESP32-S3-Touch-LCD-1.28（1.28 吋圓形觸控螢幕、六軸動作感測）</td><td>手錶</td></tr>
+<tr><td>信標（有螢幕）</td><td>LILYGO T-QT Pro（ESP32-S3、0.85 吋螢幕）</td><td>洗手台等地點信標</td></tr>
+<tr><td>信標（無螢幕）</td><td>ESP32-C3 小型開發板，或市售 iBeacon 標籤</td><td>門口、爐子信標</td></tr>
+<tr><td>心率模組（規劃中）</td><td>光學心率模組（綠光，適合手腕）</td><td>心率紀錄，只記錄不觸發提醒</td></tr>
+<tr><td>震動提醒（規劃中）</td><td>扁平震動馬達＋驅動電晶體＋保護二極體</td><td>安靜提醒</td></tr>
+<tr><td>供電與外殼</td><td>小型鋰電池、USB 行動電源、3D 列印外殼與錶帶</td><td>配戴與信標供電</td></tr>
+</table>
+
+<h2>研究依據（節錄）</h2>
+<ul style="font-size:.9rem">
+<li>Burchard, R., et al. (2026). A real-world dataset for detecting handwashing in daily life using wrist motion data from wearables. <i>Scientific Data, 13</i>, 179. <a href="https://doi.org/10.1038/s41597-026-06698-2">doi</a></li>
+<li>Kirsten, K., Burchard, R., et al. (2025). Exploring wearable-based detection of compulsive handwashing in a non-controlled setting: A case study. <i>ISWC '25</i>, 199–202. <a href="https://doi.org/10.1145/3715071.3750434">doi</a></li>
+<li>Son, J. J., et al. (2019). Thermal sensors improve wrist-worn position tracking. <i>npj Digital Medicine, 2</i>, 15. <a href="https://doi.org/10.1038/s41746-019-0092-2">doi</a></li>
+<li>McGuire, J. F., et al. (2014). Treating trichotillomania: A meta-analysis… <i>Journal of Psychiatric Research, 58</i>, 76–83. <a href="https://doi.org/10.1016/j.jpsychires.2014.07.015">doi</a></li>
+<li>Kobori, O., et al. (2012). A qualitative study of the investigation of reassurance seeking in obsessive–compulsive disorder. <i>JOCRD, 1</i>(1), 25–32. <a href="https://doi.org/10.1016/j.jocrd.2011.09.001">doi</a></li>
+</ul>
+<p><small>手錶韌體原始碼、偵測模型與調校參數不公開；信標程式碼見 <a href="code.html">信標程式碼</a>。研究原型，非醫療器材，不提供醫療建議。</small></p>
+</main></body></html>

@@ -1,0 +1,29 @@
+{
+ "id": "beacon_tqt_1",
+ "label": "信標・洗手台（LILYGO T-QT Pro，有狀態螢幕）",
+ "chip": "esp32s3",
+ "version": "1.1",
+ "built": "2026-11-16 21:23",
+ "images": [
+  {
+   "offset": 0,
+   "name": "bootloader.bin",
+   "size": 19984
+  },
+  {
+   "offset": 32768,
+   "name": "partitions.bin",
+   "size": 3072
+  },
+  {
+   "offset": 57344,
+   "name": "boot_app0.bin",
+   "size": 8192
+  },
+  {
+   "offset": 65536,
+   "name": "app.bin",
+   "size": 2080352
+  }
+ ]
+}

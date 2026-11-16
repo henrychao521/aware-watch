@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>察覺錶韌體燒錄</title>
+<style>
+:root{--ink:#1a1a18;--card:#fbfaf6;--bg:#ecebe4;--cyan:#0a7f8c;--mute:#6a665c;--ok:#1f7a3a;--bad:#b3261e;--warn:#9a5b00;--line:#cfcabd}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#ece9e1;--card:#202124;--bg:#17181a;--cyan:#4fc3cf;--mute:#a19c90;--ok:#6fd38f;--bad:#ff8a80;--warn:#ffc266;--line:#3a3b3e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+main{max-width:780px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;border-bottom:3px solid var(--ink);padding-bottom:6px;margin-bottom:10px}
+h1{font-size:1.4rem;margin:0}nav a{color:var(--cyan);margin-left:14px;font-size:.9rem}
+.sub{color:var(--mute);margin:0 0 14px}
+.card{background:var(--card);border:2px solid var(--ink);padding:14px 16px;margin:14px 0}
+.card h2{font-size:1.05rem;margin:0 0 8px}
+ol{margin:6px 0 0;padding-left:1.4em} li{margin:4px 0}
+.targets{display:grid;gap:6px}
+.targets label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);padding:8px 10px;cursor:pointer}
+.targets label small{display:block}
+button{font:inherit;font-weight:700;padding:10px 18px;border:2px solid var(--ink);background:var(--cyan);color:#fff;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+.opt{display:inline-flex;gap:6px;align-items:center;margin-left:12px;font-size:.92rem}
+#bar{height:12px;border:2px solid var(--ink);margin:12px 0 6px}#bar i{display:block;height:100%;width:0;background:var(--cyan)}
+#msg{font-weight:700}.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+pre{background:#0d1117;color:#c9d1d9;padding:10px;max-height:220px;overflow:auto;font-size:.8rem;white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;font-size:.92rem}td,th{border:1px solid var(--mute);padding:6px 8px;text-align:left;vertical-align:top}
+small{color:var(--mute)}a{color:var(--cyan)}code{font-size:.9em}
+</style></head><body><main>
+<header><h1>察覺錶韌體燒錄</h1><nav><a href="index.html">模擬器</a><a href="code.html">信標程式碼</a><a href="about.html">系統簡介</a></nav></header>
+<p class="sub">不用安裝任何軟體：用電腦版 <b>Chrome 或 Edge</b> 開這一頁，選好要燒的裝置，接上 USB 就能燒錄。</p>
+
+<div class="card"><h2>1. 選擇要燒的裝置</h2>
+<div class="targets" id="targets"><small>載入中…</small></div>
+</div>
+
+<div class="card"><h2>2. 連接並燒錄</h2>
+<ol>
+<li>用 <b>USB 資料線</b>（不是純充電線）接上板子。</li>
+<li>按「連接並燒錄」，在清單選 <code>USB JTAG/serial debug unit</code> 或板子對應的連接埠，按「連線」。</li>
+<li>等進度條跑完，看到「燒錄完成」板子會自動重開機。</li>
+</ol>
+<p style="margin:12px 0 0"><button id="go">連接並燒錄</button><label class="opt"><input type="checkbox" id="erase"> 先清除全部資料</label></p>
+<p><small>手錶平常更新<b>不要</b>勾「先清除全部資料」：勾了會一併清掉錶上的紀錄、教學範本與已登錄的信標。</small></p>
+<div id="bar"><i></i></div><div id="msg"></div>
+<pre id="log"></pre>
+</div>
+
+<div class="card"><h2>連不上？</h2>
+<table>
+<tr><th style="width:28%">狀況</th><th>怎麼處理</th></tr>
+<tr><td>清單裡沒有板子、或燒到一半斷線</td><td>讓板子進入燒錄模式：<b>按住 BOOT 鍵，再按一下 RESET（或 RST），放開 BOOT</b>；若板子沒有 RESET 鍵，就<b>按住 BOOT 拔掉 USB 再插回去</b>，插好後再放開。然後重按「連接並燒錄」。燒完拔插一次 USB 或按 RESET 重開機。</td></tr>
+<tr><td>連線後說晶片不對</td><td>手錶與 T-QT Pro 信標是 ESP32-S3；無螢幕信標是 ESP32-C3。請回第 1 步選對裝置。</td></tr>
+<tr><td>一直失敗</td><td>換一條確定能傳資料的線；關掉 Arduino IDE 的序列埠監看視窗（它會占住連接埠）；USB 集線器有問題就改插電腦本體。</td></tr>
+</table></div>
+
+<div class="card"><h2>燒錄後</h2>
+<p><b>手錶</b>：接上電腦時可用序列埠對時；操作方式可先在 <a href="index.html">模擬器</a> 熟悉。<br>
+<b>信標</b>：T-QT Pro 版開機會顯示角色與綠燈「廣播中」，30 秒後自動關背光，按任一鍵再亮；無螢幕的 C3 版只能用手錶「地點」頁掃描確認。放好後到手錶「地點」頁登錄。</p>
+<p id="ver"><small></small></p></div>
+<p><small>燒錄工具使用 <a href="https://github.com/espressif/esptool-js" target="_blank" rel="noopener">esptool-js</a>（Espressif，Apache-2.0）。研究原型，非醫療器材。</small></p>
+</main>
+<script type="module">
+import { ESPLoader, Transport } from './vendor/esptool-js.bundle.js';
+const $ = id => document.getElementById(id);
+const L = s => { const p = $('log'); p.textContent += s + '\n'; p.scrollTop = p.scrollHeight; };
+const setMsg = (t, c = '') => { $('msg').textContent = t; $('msg').className = c; };
+const CHIPNAME = { esp32s3: 'ESP32-S3', esp32c3: 'ESP32-C3' };
+let list = [];
+try { list = await (await fetch('firmware/index.json', { cache: 'no-store' })).json(); } catch { $('targets').innerHTML = '<small class="bad">韌體清單載入失敗</small>'; }
+$('targets').innerHTML = list.map((t, i) => `<label><input type="radio" name="t" value="${t.id}"${i === 0 ? ' checked' : ''}><span><b>${t.label}</b><small>晶片 ${CHIPNAME[t.chip] || t.chip}・版本 ${t.version}・編譯 ${t.built}</small></span></label>`).join('');
+const toBinStr = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return s; };
+$('go').onclick = async () => {
+  if (!('serial' in navigator)) { setMsg('這個瀏覽器不支援 Web Serial，請改用電腦版 Chrome 或 Edge。', 'bad'); return; }
+  const id = (document.querySelector('input[name=t]:checked') || {}).value; if (!id) return;
+  const m = await (await fetch(`firmware/${id}/manifest.json`, { cache: 'no-store' })).json();
+  let port;
+  try { port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x303a }, { usbVendorId: 0x1a86 }, { usbVendorId: 0x10c4 }] }); }
+  catch { setMsg('沒有選到板子：看下面「連不上？」', 'warn'); return; }
+  $('go').disabled = true; $('bar').firstElementChild.style.width = '0'; $('log').textContent = '';
+  const transport = new Transport(port, true);
+  try {
+    const term = { clean() {}, writeLine: s => L(s), write: s => { if (s.trim()) L(s.trim()); } };
+    const loader = new ESPLoader({ transport, baudrate: 460800, romBaudrate: 115200, terminal: term });
+    setMsg('連線中（讓板子進入燒錄模式）…');
+    await loader.main();
+    const chip = (loader.chip.CHIP_NAME || '').replace(/\s/g, '');
+    if (chip.toUpperCase() !== (CHIPNAME[m.chip] || '').replace(/\s/g, '').toUpperCase()) throw new Error(`偵測到 ${chip}，但「${m.label}」需要 ${CHIPNAME[m.chip]}，請回第 1 步選對裝置`);
+    setMsg(`偵測到 ${chip}，下載韌體…`);
+    const files = [];
+    for (const im of m.images) { const b = new Uint8Array(await (await fetch(`firmware/${id}/${im.name}`, { cache: 'no-store' })).arrayBuffer()); files.push({ data: toBinStr(b), address: im.offset }); L(`${im.name}：${b.length} bytes → 0x${im.offset.toString(16)}`); }
+    setMsg($('erase').checked ? '清除全部資料並燒錄中…' : '燒錄中…');
+    await loader.writeFlash({ fileArray: files, flashSize: 'keep', flashMode: 'keep', flashFreq: 'keep', eraseAll: $('erase').checked, compress: true,
+      reportProgress: (i, written, total) => { $('bar').firstElementChild.style.width = Math.round((i + written / total) / files.length * 100) + '%'; } });
+    $('bar').firstElementChild.style.width = '100%';
+    try { await loader.hardReset(); } catch {}
+    setMsg(`燒錄完成：${m.label}（v${m.version}）。若沒有自動重開機，請拔插一次 USB。`, 'ok'); L('燒錄完成');
+  } catch (e) {
+    setMsg('燒錄失敗：' + e.message, 'bad'); L('燒錄失敗：' + e.message);
+    L('常見原因：純充電線／Arduino IDE 序列埠監看占住連接埠／板子要先手動進燒錄模式（按住 BOOT 再插電）。');
+  }
+  try { await transport.disconnect(); } catch {}
+  $('go').disabled = false;
+};
+</script></body></html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>信標程式碼</title>
+<style>
+:root{--ink:#1a1a18;--card:#fbfaf6;--bg:#ecebe4;--cyan:#0a7f8c;--mute:#6a665c;--line:#cfcabd}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#ece9e1;--card:#202124;--bg:#17181a;--cyan:#4fc3cf;--mute:#a19c90;--line:#3a3b3e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+main{max-width:900px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;border-bottom:3px solid var(--ink);padding-bottom:6px;margin-bottom:10px}
+h1{font-size:1.4rem;margin:0}nav a{color:var(--cyan);margin-left:14px;font-size:.9rem}
+.card{background:var(--card);border:2px solid var(--ink);padding:14px 16px;margin:14px 0}.card h2{font-size:1.05rem;margin:0 0 8px}
+table{border-collapse:collapse;width:100%;font-size:.9rem}td,th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+pre{background:#0d1117;color:#c9d1d9;padding:12px;overflow:auto;font-size:.78rem;line-height:1.5;max-height:620px}
+a{color:var(--cyan)}.btn{display:inline-block;font-weight:700;padding:8px 16px;border:2px solid var(--ink);background:var(--cyan);color:#fff;text-decoration:none}
+small{color:var(--mute)}
+</style></head><body><main>
+<header><h1>信標程式碼</h1><nav><a href="index.html">模擬器</a><a href="flash.html">韌體燒錄</a><a href="about.html">系統簡介</a></nav></header>
+<p>地點信標只做一件事：用藍牙低功耗固定廣播一個 iBeacon（或固定名稱），讓手錶判斷「在不在附近」。不收資料、不連線。不想自己編譯的話，直接到 <a href="flash.html">韌體燒錄</a> 選角色燒錄即可。</p>
+<p><a class="btn" href="code/beacon_tx.ino" download>下載 beacon_tx.ino</a></p>
+
+<div class="card"><h2>用 Arduino IDE 自己編譯</h2>
+<table>
+<tr><th style="width:24%">項目</th><th>LILYGO T-QT Pro（有狀態螢幕）</th><th>ESP32-C3 小板（無螢幕）</th></tr>
+<tr><td>開發板套件</td><td colspan="2">esp32 by Espressif（3.x 版）</td></tr>
+<tr><td>需要的函式庫</td><td>NimBLE-Arduino（2.x）、LovyanGFX</td><td>NimBLE-Arduino（2.x）</td></tr>
+<tr><td>板子選擇</td><td>ESP32S3 Dev Module</td><td>ESP32C3 Dev Module</td></tr>
+<tr><td>重要設定</td><td>Flash Size 4MB；Partition Scheme「Huge APP」（中文字型較大）；USB CDC On Boot「Enabled」</td><td>USB CDC On Boot「Enabled」；程式開頭把 <code>HAS_TQT_SCREEN</code> 改成 0</td></tr>
+<tr><td>角色</td><td colspan="2">改 <code>MINOR</code>：1＝洗手台、2＝門口、3＝爐子（名稱會跟著變成 SINK-1／DOOR-1／STOVE-1）。同一個家裡每顆信標的 MINOR 要不同。</td></tr>
+</table>
+<p><small>UUID 用這個專案自己的固定值；要和別的專案區分，可自行換一組隨機 UUID（手錶登錄時會一併記下）。螢幕腳位與初始化序列適用 T-QT Pro（GC9107，0.85 吋）。</small></p>
+</div>
+
+<div class="card"><h2>beacon_tx.ino</h2>
+<pre id="src">載入中…</pre>
+</div>
+<p><small>手錶韌體與偵測模型目前不公開原始碼，只提供 <a href="flash.html">燒錄檔</a>。研究原型，非醫療器材。</small></p>
+</main>
+<script>
+fetch('code/beacon_tx.ino').then(r => r.text()).then(t => { document.getElementById('src').textContent = t; }).catch(() => { document.getElementById('src').textContent = '載入失敗，請直接下載檔案。'; });
+</script>
+</body></html>

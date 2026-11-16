@@ -1,0 +1,29 @@
+{
+ "id": "beacon_c3_3",
+ "label": "信標・爐子（ESP32-C3，無螢幕）",
+ "chip": "esp32c3",
+ "version": "1.1",
+ "built": "2026-11-16 21:27",
+ "images": [
+  {
+   "offset": 0,
+   "name": "bootloader.bin",
+   "size": 19520
+  },
+  {
+   "offset": 32768,
+   "name": "partitions.bin",
+   "size": 3072
+  },
+  {
+   "offset": 57344,
+   "name": "boot_app0.bin",
+   "size": 8192
+  },
+  {
+   "offset": 65536,
+   "name": "app.bin",
+   "size": 572960
+  }
+ ]
+}
